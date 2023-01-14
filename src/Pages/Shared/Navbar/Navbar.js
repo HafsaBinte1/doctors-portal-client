@@ -1,15 +1,30 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
+import PrimaryButton from '../../../components/PrimaryButton/PrimaryButton';
+import { AuthContext } from '../../../contexts/AuthProvider';
 
 const Navbar = () => {
+    const { user, logOut } = useContext(AuthContext)
+    const handleLogOut =  () =>{
+         logOut()
+        .then(() =>{})
+        .catch(err => console.log(err))
+    }
     const menuItems = <>
         <li className='font-bold'><Link to='/'>Home</Link></li>
         <li className='font-bold'><Link to='/appointment'>Appointment</Link></li>
         <li className='font-bold'><Link to='/about'>About</Link></li>
         <li className='font-bold'><Link to='/contact'>Contact us</Link></li>
         <li className='font-bold'><Link to='/reviews'>Reviews</Link></li>
-        <li className='font-bold'><Link to='/login'>Login</Link></li>
-        
+        {
+            user?.uid ?
+              <>
+               <li className='font-bold'><Link to='/dashboard'>Dashboard</Link></li>
+                <li className='font-bold'> <button onClick={handleLogOut} className="btn btn-primary bg-gradient-to-r from-primary to-secondary text-white">Sign out</button></li>
+               
+              </>
+                :
+                <li className='font-bold'><Link to='/login'>Login</Link></li>}
     </>
     return (
         <div className="navbar bg-base-100 flex justify-between">
