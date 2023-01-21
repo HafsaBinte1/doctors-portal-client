@@ -1,14 +1,23 @@
+import { GoogleAuthProvider } from 'firebase/auth';
 import React, { useContext, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthProvider';
+import useToken from '../../hooks/useToken';
 
 const Signup = () => {
     const { register, formState: { errors }, handleSubmit } = useForm();
-    const {createUser,  updateUser} = useContext(AuthContext)
+    const {createUser,  updateUser, signInWithGoogle} = useContext(AuthContext)
     const [signUpError, setSignUpError] = useState('')
+
+    const [createdUserEmail, setCreatedUserEmail] = useState('')
+    const [token] = useToken(createdUserEmail)
     const navigate = useNavigate()
+    
+    if(token){
+        navigate('/')
+    }
     const handleSignup = data =>{
         // console.log(data)
         setSignUpError('')
@@ -22,7 +31,8 @@ const Signup = () => {
             }
             updateUser(userInfo)
             .then(() =>{
-                navigate('/')
+                saveUser(data.name, data.email)
+              
             })
             .catch(err => {
                 console.log(err)
@@ -31,8 +41,35 @@ const Signup = () => {
         })
         .catch(error =>{ 
             console.error(error)
-        
             setSignUpError(error.message)})
+    }
+
+    const saveUser = (name, email) =>  {
+        const user = { name, email }
+
+        fetch('http://localhost:5000/users', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(user)
+         })
+         .then(res => res.json())
+         .then(data =>{
+          setCreatedUserEmail(email)
+         
+         }) 
+    }
+   
+    const handleWithGoogle = () => {
+        const provider = new GoogleAuthProvider()
+        signInWithGoogle(provider)
+            .then(result => {
+                const user = result.user;
+                console.log(user)
+            })
+            .catch(error => console.error(error))
+
     }
     return (
         <div className='h-[800px] flex justify-center items-center'>
@@ -85,7 +122,7 @@ const Signup = () => {
             </form>
             <p className='font-semibold'>Already have an account? <Link className='text-secondary font-semibold' to='/login'> Please Login</Link></p>
             <div className="divider">OR</div>
-            <button className="btn btn-outline w-full">CONTINUE WITH GOOGLE</button>
+            <button onClick={handleWithGoogle} className="btn btn-outline w-full">CONTINUE WITH GOOGLE</button>
         </div>
     </div>
     );
